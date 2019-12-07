@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Type.... or Die</title>
+</head>
+<body>
+    <h1>Welcome to Type or Die</h1>
+<form action="Login.php" method="post">
+    New User?<br>
+    <input type="text" name="newUsername" placeholder="Username">
+    <input type="button" value="New User" onclick="addUser()"><br>
+    Existing User?<br>
+    <input type="text" name="username" placeholder="Username">
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>
+<?php
+    function addUser(){
+        var mysql = require('mysql');
+
+        var con = mysql.createConnection({
+            host: "sql207.epizy.com",
+            user: "epiz_24465118",
+            password: "typeordie1",
+            database: "epiz_24465118_typeordiedb"
+        });
+
+        con.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected!");
+            var sql = "INSERT INTO UserLogin (username, salt, hash) VALUES ('')"
+            var values = [];
+            con.query(sql, [values], function (err, result) {
+                if (err) throw err;
+                console.log("User successfully created!")
+            });
+        });
+    }
+?>

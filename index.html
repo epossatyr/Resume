@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Socket.IO chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 13px Helvetica, Arial;
+        }
+
+        form {
+            background: #000;
+            padding: 3px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .photo{
+                    background-position: center center;
+                    background-size: cover;
+                    height: auto;
+                    left: 0;
+                    min-height: 100%;
+                    min-width: 100%;
+                    position: absolute;
+                    top: 0;
+                    width: auto;
+                }
+        .font{
+            color: white;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages li {
+            padding: 5px 10px;
+        }
+
+        #messages li:nth-child(odd) {
+            background: #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <form action="" class="photo font" style="background-image: url('https://media.istockphoto.com/photos/poker-table-felt-background-picture-id105078638?k=6&m=105078638&s=612x612&w=0&h=sfKczZqypHtVccxFl3zpR92JeEObJU9j8tzh_49JR2M=')">
+    <div id="startupDiv">
+        <label id="startupLbl">Welcome! Please enter your name:</label>
+        <input id="username" type="text">
+        <input id="submit" type="submit">
+    </div>
+    <div id="gameDiv" hidden="true">
+        <input type="image" id="btnDeal" src="./images/deck2.png" style="position:relative; LEFT: 325px; TOP: 400px">
+        <img id="playerHand2" src="./images/deck2.png" style="position: absolute; LEFT: 725px; TOP: 10px">
+        <label id='username1' style="position:absolute; LEFT: 250px; TOP: 500px">You</label>
+        <label id='username2' style="position:absolute; LEFT: 650px; TOP: 100px">Opponent</label>
+        <label id='maindeck' style="position:absolute; LEFT: 450px; TOP: 300px">Main Deck</label>
+        <audio id="Megalovania" src="./Megalovania.mp3" crossorigin="anonymous"></audio>
+        <label id='gameStatus' style="position:absolute; LEFT: 150px; TOP: 450px">Player 1 turn</label>
+
+        <label style="position:absolute; LEFT: 50px; TOP: 100px">Card in play</label>
+        <img id="cardInPlay" src="./images/empty.png" style="position: absolute; LEFT: 25px; TOP: 150px">
+        <script>
+        var song = document.getElementById("Megalovania");
+        function playAudio(){
+            song.play();
+        }
+        function displayTopFive(hand, offset){
+            if(hand.length == 0){
+                // document.getElementById(1).src = "./images/empty.png";
+                // document.getElementById(2).src = "./images/empty.png";
+                // document.getElementById(3).src = "./images/empty.png";
+                // document.getElementById(4).src = "./images/empty.png";
+                // document.getElementById(5).src = "./images/empty.png";
+                if(document.getElementById(1))
+                document.getElementById(1).remove();
+                if(document.getElementById(2))
+                document.getElementById(2).remove();
+                if(document.getElementById(3))
+                document.getElementById(3).remove();
+                if(document.getElementById(4))
+                document.getElementById(4).remove();
+                if(document.getElementById(5))
+                document.getElementById(5).remove();
+            }
+            if(hand.length >= 5){
+                for(let i = 1; i <= 5; i++){
+                    var card = document.createElement("input");
+                    console.log('in displayTopFive');
+                    card.type = "image";
+                    card.id = i;
+                    card.src = "./images/" + hand[hand.length - i] + ".png";
+                    // ace.useMap = "#cards";
+                    card.align = 'center';
+                    card.style = "position:absolute; LEFT: "+ (i*40 + 500) + "px; TOP: 200px";
+                    document.body.appendChild(card);
+                }
+            }
+            else{
+                for(let i = 1; i <= hand.length; i++){
+                    // console.log('deck in top five: ' + hand[i]);
+                    var card = document.createElement("input");
+                    console.log('in displayTopFive');
+                    card.type = "image";
+                    card.id = i;
+                    card.src = "./images/" + hand[hand.length - i] + ".png";
+                    // ace.useMap = "#cards";
+                    card.align = 'center';
+                    card.style = "position:absolute; LEFT: "+ (i*40 + 500) + "px; TOP: 200px";
+                    document.body.appendChild(card);
+                }
+            }
+        }
+        </script>
+    </div>
+</form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <!-- <script src="C:/Users/A_Cot/Documents/School 2019-2020/Software Engineering 2/egyptian rat screw/ERS/Hand.js" type="module"></script> -->
+    <script>
+        $(function(){
+            var socket = io();
+            var socketId;
+            $('form').submit(function(e){
+                e.preventDefault();
+                $('#startupLbl').text("Please wait for another user to join...");
+                $('#username').hide();
+                $('#submit').hide();
+                socket.emit('newUser', $('#username').val());
+            });
+            $('#1').click(function(e){
+                console.log("hit button");
+                // socket.emit('slap', $('#btnSlap').id);
+                return false;
+            });
+            $('#btnDeal').click(function(e){
+                socket.emit('deal', socketId);
+                return false;
+            });
+            socket.on('connected', function(sock){
+                console.log("Socket id of user:" + sock);
+                if(!socketId)
+                socketId = sock;
+            });
+            socket.on('start game', function(usernames, deckCards){
+                //Display side of things
+                playAudio();
+                console.log("my socket: " + socketId);
+                console.log(usernames);
+                $('#startupDiv').hide();
+                $('#gameDiv').show();
+                console.log("in start game");
+                // displayTopFive(Deck, 25);
+                $('#username1').text(usernames[socketId]);
+                // $('#username2').text(usernames[]);
+                if(deckCards.length == 0 && $('#btnSlap')[0]){
+                    $('#btnSlap')[0].src = "./images/empty.png";
+                    // $('#btnSlap')[0].src = null;
+                }
+                else displayTopFive(deckCards, 25);
+            });
+            socket.on('display main', function(deck){
+                displayTopFive(deck, 25);
+            });
+            socket.on('challenge', function(user, chance){
+                //display challenge label
+                $('#gameStatus').text("Challenged! " + user + ", you have " + chance + " chances!");
+            });
+            socket.on('change turn', function(name){
+                $('#gameStatus').text("Player " + name + "'s Turn");
+            });
+            socket.on('show card', function(card){
+                $('#cardInPlay')[0].src = "./images/" + card + ".png";
+            });
+            socket.on('winner', function(name){
+                $('#gameStatus').text("Player " + name + ' won!');
+            });
+            socket.on('stack winner', function(name){
+                $('#gameStatus').text("Player " + name + ' won the stack!');
+            });
+            //on the above "$('form').submit" the function above will run and emit 'chat message' which
+            //will trigger the "socket.on" bellow and will then run the function bellow.
+            
+            //on disconnect the function will be ran
+            socket.on('disconnected', function(id){
+                $('#messages').append($('<li>').text( id + ' Left the Chat Room'));
+            });
+        });
+    </script>
+</body>
+
+</html>
